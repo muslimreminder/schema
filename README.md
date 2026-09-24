@@ -43,7 +43,8 @@ const book = HadithBookFileSchema.parse(await (await fetch(`${base}/${entry.path
 ```
 
 Texts are plain text (no HTML), keyed by language (`texts.en`, `texts.ar`…). Identifiers
-(`bookId`, hadith `number`, `chapterId`) are strings.
+(`bookId`, hadith `number`, `chapterId`) are strings. A hadith's `id` is stable and unique in its
+collection; its `number` is the printed one and may repeat (alternative chains).
 
 ## API contracts
 
