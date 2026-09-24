@@ -40,6 +40,7 @@ export const bookFile: HadithBookFile = {
     ],
     hadiths: [
         {
+            id: '100010',
             collectionId: 'bukhari',
             bookId: '1',
             number: '1',

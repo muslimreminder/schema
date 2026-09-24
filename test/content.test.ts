@@ -42,6 +42,12 @@ describe('hadith content', () => {
         expect(duplicated.success).toBe(false);
     });
 
+    it('accepts two hadiths sharing a number (alternative chain) with distinct ids', () => {
+        const [hadith] = bookFile.hadiths;
+        const alternative = { ...hadith!, id: '100011' };
+        expect(HadithBookFileSchema.safeParse({ ...bookFile, hadiths: [hadith, alternative] }).success).toBe(true);
+    });
+
     it('rejects a hadith without any text', () => {
         const hadith = { ...bookFile.hadiths[0]!, texts: {} };
         expect(HadithBookFileSchema.safeParse({ ...bookFile, hadiths: [hadith] }).success).toBe(false);

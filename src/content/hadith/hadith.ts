@@ -31,9 +31,17 @@ export const HadithTextSchema = z.object({
 export type HadithText = z.infer<typeof HadithTextSchema>;
 
 export const HadithSchema = z.object({
+    /**
+     * Stable identifier, unique in the collection (sunnah.com: the Arabic URN).
+     * Use it for favorites and links: `number` is not unique.
+     */
+    id: z.string().min(1),
     collectionId: HadithCollectionIdSchema,
     bookId: HadithBookIdSchema,
-    /** Hadith number in the collection. A string: some are like `"12a"`. */
+    /**
+     * Hadith number as printed in the collection. A string (`"12a"`), and not unique:
+     * a hadith and its alternative chain can share the same number.
+     */
     number: z.string().min(1),
     chapterId: z.string().min(1).optional(),
     texts: z
@@ -61,7 +69,7 @@ export const HadithBookFileSchema = z
     })
     .superRefine((file, ctx) => {
         const chapterIds = new Set(file.chapters.map((chapter) => chapter.id));
-        const numbers = new Set<string>();
+        const ids = new Set<string>();
         file.hadiths.forEach((hadith, index) => {
             const path = ['hadiths', index];
             if (hadith.collectionId !== file.collectionId) {
@@ -73,10 +81,10 @@ export const HadithBookFileSchema = z
             if (hadith.chapterId !== undefined && !chapterIds.has(hadith.chapterId)) {
                 ctx.addIssue({ code: 'custom', message: `Unknown chapter "${hadith.chapterId}"`, path: [...path, 'chapterId'] });
             }
-            if (numbers.has(hadith.number)) {
-                ctx.addIssue({ code: 'custom', message: `Duplicate hadith number "${hadith.number}"`, path: [...path, 'number'] });
+            if (ids.has(hadith.id)) {
+                ctx.addIssue({ code: 'custom', message: `Duplicate hadith id "${hadith.id}"`, path: [...path, 'id'] });
             }
-            numbers.add(hadith.number);
+            ids.add(hadith.id);
         });
     });
 export type HadithBookFile = z.infer<typeof HadithBookFileSchema>;
