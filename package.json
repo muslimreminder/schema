@@ -1,6 +1,6 @@
 {
   "name": "@muslimreminder/schema",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Shared Zod schemas and types for Muslim Reminder: published content (hadiths, Quran…) and API contracts.",
   "license": "MIT",
   "author": "Muslim Reminder",
