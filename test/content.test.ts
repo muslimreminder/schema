@@ -9,6 +9,8 @@ import {
     QURAN_VERSE_COUNTS,
     QuranSurahInfoFileSchema,
     QuranSurahInfosFileSchema,
+    QuranTafsirFileSchema,
+    QuranTafsirsFileSchema,
     QuranTranslationFileSchema,
     QuranTranslationsFileSchema,
     QuranWordTranslationFileSchema,
@@ -20,6 +22,7 @@ import {
     collectionsFile,
     manifest,
     surahInfoFile,
+    tafsirFile,
     translationFile,
     translationsFile,
     wordTranslationFile,
@@ -193,5 +196,32 @@ describe('quran surah infos', () => {
     it('exposes the surah info keys', () => {
         expect(contentKeys.quran.surahInfos()).toBe('quran/surah-infos');
         expect(contentKeys.quran.surahInfo('en-maududi')).toBe('quran/surah-infos/en-maududi');
+    });
+});
+
+describe('quran tafsirs', () => {
+    const withPassages = (passages: unknown[]) => ({ ...tafsirFile, surahs: [passages, ...tafsirFile.surahs.slice(1)] });
+
+    it('accepts a valid file and its catalog', () => {
+        expect(QuranTafsirFileSchema.parse(tafsirFile)).toEqual(tafsirFile);
+        const catalog = { schemaVersion: 1, tafsirs: [tafsirFile.tafsir] };
+        expect(QuranTafsirsFileSchema.parse(catalog)).toEqual(catalog);
+        expect(QuranTafsirsFileSchema.safeParse({ ...catalog, tafsirs: [tafsirFile.tafsir, tafsirFile.tafsir] }).success).toBe(false);
+    });
+
+    it('rejects a missing surah, overlapping or out-of-range passages, an empty passage and a wrong count', () => {
+        expect(QuranTafsirFileSchema.safeParse({ ...tafsirFile, surahs: tafsirFile.surahs.slice(1) }).success).toBe(false);
+        const [first, second] = tafsirFile.surahs[0]!;
+        expect(QuranTafsirFileSchema.safeParse(withPassages([second, first])).success).toBe(false);
+        expect(QuranTafsirFileSchema.safeParse(withPassages([first, { ...second, from: 1 }])).success).toBe(false);
+        expect(QuranTafsirFileSchema.safeParse(withPassages([first, { ...second, to: 8 }])).success).toBe(false);
+        expect(QuranTafsirFileSchema.safeParse(withPassages([first, { ...second, from: 6, to: 5 }])).success).toBe(false);
+        expect(QuranTafsirFileSchema.safeParse(withPassages([first, { ...second, blocks: [] }])).success).toBe(false);
+        expect(QuranTafsirFileSchema.safeParse(withPassages([first])).success).toBe(false);
+    });
+
+    it('exposes the tafsir keys', () => {
+        expect(contentKeys.quran.tafsirs()).toBe('quran/tafsirs');
+        expect(contentKeys.quran.tafsir('en-ibn-kathir')).toBe('quran/tafsirs/en-ibn-kathir');
     });
 });
