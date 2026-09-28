@@ -1,4 +1,12 @@
-import type { HadithBookFile, HadithBooksFile, HadithCollectionsFile, Manifest } from '../src/index.js';
+import { QURAN_VERSE_COUNTS } from '../src/content/index.js';
+import type {
+    HadithBookFile,
+    HadithBooksFile,
+    HadithCollectionsFile,
+    Manifest,
+    QuranTranslationFile,
+    QuranTranslationsFile,
+} from '../src/index.js';
 
 const retrievedAt = '2026-09-24T10:00:00.000Z';
 
@@ -74,4 +82,29 @@ export const manifest: Manifest = {
             bytes: 1234,
         },
     },
+};
+
+export const translationsFile: QuranTranslationsFile = {
+    schemaVersion: 1,
+    translations: [
+        {
+            id: 'fr-hamidullah',
+            language: 'fr',
+            name: 'Muhammad Hamidullah',
+            footnotedVerseCount: 1,
+            attribution: { source: 'Quranic Universal Library', sourceUrl: 'https://qul.tarteel.ai/resources/translation/227', retrievedAt },
+        },
+    ],
+};
+
+export const translationFile: QuranTranslationFile = {
+    schemaVersion: 1,
+    translation: translationsFile.translations[0]!,
+    surahs: QURAN_VERSE_COUNTS.map((count, surah) =>
+        Array.from({ length: count }, (_, verse) => ({ text: `Verset ${surah + 1}:${verse + 1}` })),
+    ),
+};
+translationFile.surahs[0]![0] = {
+    text: 'Au nom d’Allah, le Tout Miséricordieux, le Très Miséricordieux.',
+    footnotes: [{ offset: 63, text: 'C’est la formule que prononce le Musulman au commencement de tout acte.' }],
 };

@@ -6,8 +6,11 @@ import {
     HadithBooksFileSchema,
     HadithCollectionsFileSchema,
     ManifestSchema,
+    QURAN_VERSE_COUNTS,
+    QuranTranslationFileSchema,
+    QuranTranslationsFileSchema,
 } from '../src/content/index.js';
-import { bookFile, booksFile, collectionsFile, manifest } from './fixtures.js';
+import { bookFile, booksFile, collectionsFile, manifest, translationFile, translationsFile } from './fixtures.js';
 
 describe('hadith content', () => {
     it('accepts valid files', () => {
@@ -77,5 +80,55 @@ describe('manifest', () => {
         const path = hashedPath(contentKeys.hadith.collections(), sha);
         expect(path).toBe('hadith/collections.9f86d081.json');
         expect(ManifestSchema.shape.files.valueType.shape.path.safeParse(path).success).toBe(true);
+    });
+});
+
+describe('quran translations', () => {
+    const withVerse = (surah: number, verse: number, value: unknown) => ({
+        ...translationFile,
+        surahs: translationFile.surahs.map((verses, s) => (s === surah ? verses.map((v, i) => (i === verse ? value : v)) : verses)),
+    });
+
+    it('counts the 6,236 verses of the mushaf', () => {
+        expect(QURAN_VERSE_COUNTS).toHaveLength(114);
+        expect(QURAN_VERSE_COUNTS.reduce((sum, count) => sum + count, 0)).toBe(6236);
+    });
+
+    it('accepts valid files', () => {
+        expect(QuranTranslationsFileSchema.parse(translationsFile)).toEqual(translationsFile);
+        expect(QuranTranslationFileSchema.parse(translationFile)).toEqual(translationFile);
+    });
+
+    it('rejects duplicate translations and malformed ids', () => {
+        const translations = [...translationsFile.translations, ...translationsFile.translations];
+        expect(QuranTranslationsFileSchema.safeParse({ ...translationsFile, translations }).success).toBe(false);
+        for (const id of ['hamidullah', 'FR-hamidullah', 'fr_hamidullah', 'fr-']) {
+            const translation = { ...translationsFile.translations[0]!, id };
+            expect(QuranTranslationsFileSchema.safeParse({ ...translationsFile, translations: [translation] }).success).toBe(false);
+        }
+    });
+
+    it('rejects a translation with a missing surah or verse', () => {
+        expect(QuranTranslationFileSchema.safeParse({ ...translationFile, surahs: translationFile.surahs.slice(1) }).success).toBe(false);
+        const surahs = translationFile.surahs.map((verses, s) => (s === 1 ? verses.slice(1) : verses));
+        expect(QuranTranslationFileSchema.safeParse({ ...translationFile, surahs }).success).toBe(false);
+    });
+
+    it('rejects empty verses and misplaced footnotes', () => {
+        expect(QuranTranslationFileSchema.safeParse(withVerse(1, 0, { text: '' })).success).toBe(false);
+        const past = { text: 'Alif, Lam, Mim.', footnotes: [{ offset: 99, text: 'Note' }] };
+        expect(QuranTranslationFileSchema.safeParse(withVerse(0, 0, past)).success).toBe(false);
+        const unordered = { text: 'Alif, Lam, Mim.', footnotes: [{ offset: 5, text: 'B' }, { offset: 2, text: 'A' }] };
+        expect(QuranTranslationFileSchema.safeParse(withVerse(0, 0, unordered)).success).toBe(false);
+    });
+
+    it('checks the footnoted verse count of the catalog entry', () => {
+        const translation = { ...translationFile.translation, footnotedVerseCount: 0 };
+        expect(QuranTranslationFileSchema.safeParse({ ...translationFile, translation }).success).toBe(false);
+    });
+
+    it('exposes the translation keys', () => {
+        expect(contentKeys.quran.translations()).toBe('quran/translations');
+        expect(contentKeys.quran.translation('fr-hamidullah')).toBe('quran/translations/fr-hamidullah');
     });
 });

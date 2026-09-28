@@ -8,6 +8,10 @@ export const contentKeys = {
         books: (collectionId: string) => `hadith/${collectionId}/books`,
         book: (collectionId: string, bookId: string) => `hadith/${collectionId}/books/${bookId}`,
     },
+    quran: {
+        translations: () => 'quran/translations',
+        translation: (translationId: string) => `quran/translations/${translationId}`,
+    },
 } as const;
 
 /** Hashed file path for a key, e.g. `hadith/bukhari/books/1` → `hadith/bukhari/books/1.3f2a9c1b.json`. */
