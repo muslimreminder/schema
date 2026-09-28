@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.6.0
+
+### Minor Changes
+
+- [`c3aa4df`](https://github.com/muslimreminder/schema/commit/c3aa4dfac8815f626a5569469855c239e3975bbb) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Add Quran tafsirs: `quran/tafsirs` catalog (several per language, optional `author`, `verseCount`) and `quran/tafsirs/{id}` files (`surahs[s-1]` = ordered passages `{ from, to, blocks }` covering one or several verses; plain-text blocks `heading` / `paragraph` / `list` / `quote`), `contentKeys.quran.tafsirs` / `tafsir`.
+
 ## 0.5.0
 
 ### Minor Changes
