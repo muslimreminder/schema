@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.4.0
+
+### Minor Changes
+
+- [`1fc4301`](https://github.com/muslimreminder/schema/commit/1fc43013bd4a730d60977a38012910fe3783dfb1) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Add Quran word-by-word translations: `quran/word-translations` catalog and `quran/word-translations/{id}` files (`surahs[s-1][v-1][w-1]`, `null` for an untranslated word), `contentKeys.quran.wordTranslations` / `wordTranslation`.
+
 ## 0.3.0
 
 ### Minor Changes
