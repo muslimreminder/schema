@@ -6,6 +6,7 @@ import type {
     Manifest,
     QuranTranslationFile,
     QuranTranslationsFile,
+    QuranSurahInfoFile,
     QuranWordTranslationFile,
 } from '../src/index.js';
 
@@ -123,3 +124,23 @@ export const wordTranslationFile: QuranWordTranslationFile = {
 };
 wordTranslationFile.surahs[0]![0] = ['Au nom', 'd’Allah', null, 'le Très Miséricordieux'];
 wordTranslationFile.translation.translatedWordCount = 3;
+
+export const surahInfoFile: QuranSurahInfoFile = {
+    schemaVersion: 1,
+    info: {
+        id: 'en-maududi',
+        language: 'en',
+        name: 'Abul Ala Maududi',
+        surahCount: 1,
+        attribution: { source: 'Quranic Universal Library', sourceUrl: 'https://qul.tarteel.ai/resources/surah-info/3', retrievedAt },
+    },
+    surahs: Array.from({ length: 114 }, () => null),
+};
+surahInfoFile.surahs[0] = {
+    summary: 'This Surah is named Al-Fatihah because of its subject matter.',
+    blocks: [
+        { type: 'heading', text: 'Name' },
+        { type: 'paragraph', text: 'This Surah is named Al-Fatihah because of its subject matter.' },
+        { type: 'list', ordered: true, items: ['Praise', 'Prayer'] },
+    ],
+};

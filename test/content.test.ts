@@ -7,12 +7,23 @@ import {
     HadithCollectionsFileSchema,
     ManifestSchema,
     QURAN_VERSE_COUNTS,
+    QuranSurahInfoFileSchema,
+    QuranSurahInfosFileSchema,
     QuranTranslationFileSchema,
     QuranTranslationsFileSchema,
     QuranWordTranslationFileSchema,
     QuranWordTranslationsFileSchema,
 } from '../src/content/index.js';
-import { bookFile, booksFile, collectionsFile, manifest, translationFile, translationsFile, wordTranslationFile } from './fixtures.js';
+import {
+    bookFile,
+    booksFile,
+    collectionsFile,
+    manifest,
+    surahInfoFile,
+    translationFile,
+    translationsFile,
+    wordTranslationFile,
+} from './fixtures.js';
 
 describe('hadith content', () => {
     it('accepts valid files', () => {
@@ -158,5 +169,29 @@ describe('quran word-by-word translations', () => {
     it('exposes the word translation keys', () => {
         expect(contentKeys.quran.wordTranslations()).toBe('quran/word-translations');
         expect(contentKeys.quran.wordTranslation('fr-wbw')).toBe('quran/word-translations/fr-wbw');
+    });
+});
+
+describe('quran surah infos', () => {
+    it('accepts a valid file and its catalog', () => {
+        expect(QuranSurahInfoFileSchema.parse(surahInfoFile)).toEqual(surahInfoFile);
+        const catalog = { schemaVersion: 1, infos: [surahInfoFile.info] };
+        expect(QuranSurahInfosFileSchema.parse(catalog)).toEqual(catalog);
+        expect(QuranSurahInfosFileSchema.safeParse({ ...catalog, infos: [surahInfoFile.info, surahInfoFile.info] }).success).toBe(false);
+    });
+
+    it('rejects a missing surah, an empty introduction, an empty list and a wrong count', () => {
+        expect(QuranSurahInfoFileSchema.safeParse({ ...surahInfoFile, surahs: surahInfoFile.surahs.slice(1) }).success).toBe(false);
+        const withFirst = (first: unknown) => ({ ...surahInfoFile, surahs: [first, ...surahInfoFile.surahs.slice(1)] });
+        expect(QuranSurahInfoFileSchema.safeParse(withFirst({ blocks: [] })).success).toBe(false);
+        expect(QuranSurahInfoFileSchema.safeParse(withFirst({ blocks: [{ type: 'list', ordered: false, items: [] }] })).success).toBe(false);
+        expect(QuranSurahInfoFileSchema.safeParse(withFirst({ blocks: [{ type: 'quote', text: 'x' }] })).success).toBe(false);
+        const info = { ...surahInfoFile.info, surahCount: 2 };
+        expect(QuranSurahInfoFileSchema.safeParse({ ...surahInfoFile, info }).success).toBe(false);
+    });
+
+    it('exposes the surah info keys', () => {
+        expect(contentKeys.quran.surahInfos()).toBe('quran/surah-infos');
+        expect(contentKeys.quran.surahInfo('en-maududi')).toBe('quran/surah-infos/en-maududi');
     });
 });
