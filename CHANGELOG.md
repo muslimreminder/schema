@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.3.0
+
+### Minor Changes
+
+- [#5](https://github.com/muslimreminder/schema/pull/5) [`f3674fb`](https://github.com/muslimreminder/schema/commit/f3674fb12c50a66359294237473f190919be1a11) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Add Quran verse-by-verse translations: `quran/translations` catalog, `quran/translations/{id}` files (plain text, footnotes kept with their offset), `QURAN_VERSE_COUNTS` and `contentKeys.quran`.
+
 ## 0.2.0
 
 ### Minor Changes
