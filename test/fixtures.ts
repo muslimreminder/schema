@@ -7,6 +7,7 @@ import type {
     QuranTranslationFile,
     QuranTranslationsFile,
     QuranSurahInfoFile,
+    QuranTafsirFile,
     QuranWordTranslationFile,
 } from '../src/index.js';
 
@@ -144,3 +145,27 @@ surahInfoFile.surahs[0] = {
         { type: 'list', ordered: true, items: ['Praise', 'Prayer'] },
     ],
 };
+
+export const tafsirFile: QuranTafsirFile = {
+    schemaVersion: 1,
+    tafsir: {
+        id: 'en-ibn-kathir',
+        language: 'en',
+        name: 'Tafsir Ibn Kathir',
+        author: 'Ismail ibn Kathir',
+        verseCount: 4,
+        attribution: { source: 'Quranic Universal Library', sourceUrl: 'https://qul.tarteel.ai/resources/tafsir/35', retrievedAt },
+    },
+    surahs: Array.from({ length: 114 }, () => []),
+};
+tafsirFile.surahs[0] = [
+    { from: 1, to: 1, blocks: [{ type: 'heading', text: 'The Meaning of Al-Fatihah' }, { type: 'paragraph', text: 'This Surah is called Al-Fatihah.' }] },
+    {
+        from: 5,
+        to: 7,
+        blocks: [
+            { type: 'quote', text: 'You (alone) we worship, and You (alone) we ask for help.' },
+            { type: 'list', ordered: false, items: ['Worship', 'Help'] },
+        ],
+    },
+];

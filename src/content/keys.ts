@@ -15,6 +15,8 @@ export const contentKeys = {
         wordTranslation: (translationId: string) => `quran/word-translations/${translationId}`,
         surahInfos: () => 'quran/surah-infos',
         surahInfo: (infoId: string) => `quran/surah-infos/${infoId}`,
+        tafsirs: () => 'quran/tafsirs',
+        tafsir: (tafsirId: string) => `quran/tafsirs/${tafsirId}`,
     },
 } as const;
 
