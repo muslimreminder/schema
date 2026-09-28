@@ -9,8 +9,10 @@ import {
     QURAN_VERSE_COUNTS,
     QuranTranslationFileSchema,
     QuranTranslationsFileSchema,
+    QuranWordTranslationFileSchema,
+    QuranWordTranslationsFileSchema,
 } from '../src/content/index.js';
-import { bookFile, booksFile, collectionsFile, manifest, translationFile, translationsFile } from './fixtures.js';
+import { bookFile, booksFile, collectionsFile, manifest, translationFile, translationsFile, wordTranslationFile } from './fixtures.js';
 
 describe('hadith content', () => {
     it('accepts valid files', () => {
@@ -130,5 +132,31 @@ describe('quran translations', () => {
     it('exposes the translation keys', () => {
         expect(contentKeys.quran.translations()).toBe('quran/translations');
         expect(contentKeys.quran.translation('fr-hamidullah')).toBe('quran/translations/fr-hamidullah');
+    });
+});
+
+describe('quran word-by-word translations', () => {
+    it('accepts a valid file and its catalog', () => {
+        expect(QuranWordTranslationFileSchema.parse(wordTranslationFile)).toEqual(wordTranslationFile);
+        const catalog = { schemaVersion: 1, translations: [wordTranslationFile.translation] };
+        expect(QuranWordTranslationsFileSchema.parse(catalog)).toEqual(catalog);
+    });
+
+    it('rejects a missing verse, a verse without words, an empty word and a wrong count', () => {
+        const surahs = wordTranslationFile.surahs.map((verses, s) => (s === 1 ? verses.slice(1) : verses));
+        expect(QuranWordTranslationFileSchema.safeParse({ ...wordTranslationFile, surahs }).success).toBe(false);
+        const withVerse = (words: unknown[]) => ({
+            ...wordTranslationFile,
+            surahs: wordTranslationFile.surahs.map((verses, s) => (s === 0 ? [words, ...verses.slice(1)] : verses)),
+        });
+        expect(QuranWordTranslationFileSchema.safeParse(withVerse([])).success).toBe(false);
+        expect(QuranWordTranslationFileSchema.safeParse(withVerse(['Au nom', ''])).success).toBe(false);
+        const translation = { ...wordTranslationFile.translation, translatedWordCount: 4 };
+        expect(QuranWordTranslationFileSchema.safeParse({ ...wordTranslationFile, translation }).success).toBe(false);
+    });
+
+    it('exposes the word translation keys', () => {
+        expect(contentKeys.quran.wordTranslations()).toBe('quran/word-translations');
+        expect(contentKeys.quran.wordTranslation('fr-wbw')).toBe('quran/word-translations/fr-wbw');
     });
 });

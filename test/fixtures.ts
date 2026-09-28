@@ -6,6 +6,7 @@ import type {
     Manifest,
     QuranTranslationFile,
     QuranTranslationsFile,
+    QuranWordTranslationFile,
 } from '../src/index.js';
 
 const retrievedAt = '2026-09-24T10:00:00.000Z';
@@ -108,3 +109,17 @@ translationFile.surahs[0]![0] = {
     text: 'Au nom d’Allah, le Tout Miséricordieux, le Très Miséricordieux.',
     footnotes: [{ offset: 63, text: 'C’est la formule que prononce le Musulman au commencement de tout acte.' }],
 };
+
+export const wordTranslationFile: QuranWordTranslationFile = {
+    schemaVersion: 1,
+    translation: {
+        id: 'fr-wbw',
+        language: 'fr',
+        name: 'Mot à mot (français)',
+        translatedWordCount: 0,
+        attribution: { source: 'Quranic Universal Library', retrievedAt },
+    },
+    surahs: QURAN_VERSE_COUNTS.map((count) => Array.from({ length: count }, () => [null])),
+};
+wordTranslationFile.surahs[0]![0] = ['Au nom', 'd’Allah', null, 'le Très Miséricordieux'];
+wordTranslationFile.translation.translatedWordCount = 3;
