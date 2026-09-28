@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.5.0
+
+### Minor Changes
+
+- [#8](https://github.com/muslimreminder/schema/pull/8) [`a8e5f54`](https://github.com/muslimreminder/schema/commit/a8e5f5465c0bb3813225912f3ae8ba80747323ba) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Add Quran surah introductions: `quran/surah-infos` catalog and `quran/surah-infos/{id}` files (`surahs[s-1]`, `null` when the source has none; plain-text blocks `heading` / `paragraph` / `list` and an optional `summary`), `contentKeys.quran.surahInfos` / `surahInfo`.
+
 ## 0.4.0
 
 ### Minor Changes
