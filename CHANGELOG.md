@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.7.0
+
+### Minor Changes
+
+- Add Quran recitations: `quran/recitations` catalog (reciter, `murattal` / `mujawwad` style, `timedVerseCount`) and `quran/recitations/{id}` files (`surahs[s-1][v-1]` = the audio of verse `s:v`, its `duration` and its `words`, each `[word, start, end]` in milliseconds), `contentKeys.quran.recitations` / `recitation`, and `quranVerseAudioPath(id, surah, ayah)` for the verse audio files, which the manifest does not list.
+
 ## 0.6.0
 
 ### Minor Changes
