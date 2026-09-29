@@ -7,6 +7,9 @@ import {
     HadithCollectionsFileSchema,
     ManifestSchema,
     QURAN_VERSE_COUNTS,
+    quranVerseAudioPath,
+    QuranRecitationFileSchema,
+    QuranRecitationsFileSchema,
     QuranSurahInfoFileSchema,
     QuranSurahInfosFileSchema,
     QuranTafsirFileSchema,
@@ -21,6 +24,7 @@ import {
     booksFile,
     collectionsFile,
     manifest,
+    recitationFile,
     surahInfoFile,
     tafsirFile,
     translationFile,
@@ -223,5 +227,51 @@ describe('quran tafsirs', () => {
     it('exposes the tafsir keys', () => {
         expect(contentKeys.quran.tafsirs()).toBe('quran/tafsirs');
         expect(contentKeys.quran.tafsir('en-ibn-kathir')).toBe('quran/tafsirs/en-ibn-kathir');
+    });
+});
+
+describe('quran recitations', () => {
+    const withFirstVerse = (verse: unknown) => ({
+        ...recitationFile,
+        surahs: [[verse, ...recitationFile.surahs[0]!.slice(1)], ...recitationFile.surahs.slice(1)],
+    });
+
+    it('accepts a valid file and its catalog', () => {
+        expect(QuranRecitationFileSchema.parse(recitationFile)).toEqual(recitationFile);
+        const catalog = { schemaVersion: 1, recitations: [recitationFile.recitation] };
+        expect(QuranRecitationsFileSchema.parse(catalog)).toEqual(catalog);
+        const twice = [recitationFile.recitation, recitationFile.recitation];
+        expect(QuranRecitationsFileSchema.safeParse({ ...catalog, recitations: twice }).success).toBe(false);
+    });
+
+    it('accepts a verse the source did not time word by word', () => {
+        expect(QuranRecitationFileSchema.safeParse(withFirstVerse({ words: [] })).success).toBe(false);
+        const untimed = { ...recitationFile.recitation, timedVerseCount: 0 };
+        const file = { ...withFirstVerse({ words: [] }), recitation: untimed };
+        expect(QuranRecitationFileSchema.safeParse(file).success).toBe(true);
+    });
+
+    it('rejects a missing surah, unordered, backwards or repeated word timings, and a wrong count', () => {
+        expect(QuranRecitationFileSchema.safeParse({ ...recitationFile, surahs: recitationFile.surahs.slice(1) }).success).toBe(false);
+        expect(QuranRecitationFileSchema.safeParse(withFirstVerse({ words: [[1, 600, 900], [2, 0, 480]] })).success).toBe(false);
+        expect(QuranRecitationFileSchema.safeParse(withFirstVerse({ words: [[1, 600, 400]] })).success).toBe(false);
+        expect(QuranRecitationFileSchema.safeParse(withFirstVerse({ words: [[1, 0, 400], [1, 600, 900]] })).success).toBe(false);
+        expect(QuranRecitationFileSchema.safeParse(withFirstVerse({ words: [[0, 0, 400]] })).success).toBe(false);
+        const recitation = { ...recitationFile.recitation, timedVerseCount: 2 };
+        expect(QuranRecitationFileSchema.safeParse({ ...recitationFile, recitation }).success).toBe(false);
+    });
+
+    it('rejects a malformed reciter slug and an unknown style', () => {
+        const catalog = (recitation: unknown) => QuranRecitationsFileSchema.safeParse({ schemaVersion: 1, recitations: [recitation] });
+        expect(catalog({ ...recitationFile.recitation, id: 'Al-Husary' }).success).toBe(false);
+        expect(catalog({ ...recitationFile.recitation, id: 'al--husary' }).success).toBe(false);
+        expect(catalog({ ...recitationFile.recitation, style: 'tarteel' }).success).toBe(false);
+    });
+
+    it('exposes the recitation keys and the audio path of a verse', () => {
+        expect(contentKeys.quran.recitations()).toBe('quran/recitations');
+        expect(contentKeys.quran.recitation('al-husary')).toBe('quran/recitations/al-husary');
+        expect(quranVerseAudioPath('al-husary', 2, 255)).toBe('quran/audio/al-husary/002255.mp3');
+        expect(quranVerseAudioPath('sudais', 114, 6)).toBe('quran/audio/sudais/114006.mp3');
     });
 });

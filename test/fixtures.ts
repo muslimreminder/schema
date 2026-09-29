@@ -4,6 +4,7 @@ import type {
     HadithBooksFile,
     HadithCollectionsFile,
     Manifest,
+    QuranRecitationFile,
     QuranTranslationFile,
     QuranTranslationsFile,
     QuranSurahInfoFile,
@@ -169,3 +170,24 @@ tafsirFile.surahs[0] = [
         ],
     },
 ];
+
+export const recitationFile: QuranRecitationFile = {
+    schemaVersion: 1,
+    recitation: {
+        id: 'al-husary',
+        reciter: 'Mahmoud Khalil Al-Husary',
+        style: 'murattal',
+        timedVerseCount: 1,
+        attribution: { source: 'Quranic Universal Library', sourceUrl: 'https://qul.tarteel.ai/resources/recitation/957', retrievedAt },
+    },
+    surahs: QURAN_VERSE_COUNTS.map((count) => Array.from({ length: count }, () => ({ words: [] }))),
+};
+recitationFile.surahs[0]![0] = {
+    duration: 5400,
+    words: [
+        [1, 0, 480],
+        [2, 600, 1000],
+        [3, 1800, 2160],
+        [4, 2480, 5160],
+    ],
+};

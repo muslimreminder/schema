@@ -1,3 +1,4 @@
+export * from './recitation.js';
 export * from './structure.js';
 export * from './surah-info.js';
 export * from './tafsir.js';
