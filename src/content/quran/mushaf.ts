@@ -24,7 +24,7 @@ export const QuranMushafSchema = z.object({
     /** The fonts color the letters by tajweed rule. */
     tajweed: z.boolean(),
     lineCount: z.number().int().positive(),
-    /** What a download of the whole mushaf weighs: the layout file and every page font. */
+    /** What the 604 page fonts weigh together, the bulk of a download of the mushaf. */
     bytes: z.number().int().positive(),
     attribution: AttributionSchema,
 });
