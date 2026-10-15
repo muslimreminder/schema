@@ -4,6 +4,8 @@ import type {
     HadithBooksFile,
     HadithCollectionsFile,
     Manifest,
+    QuranMushafFile,
+    QuranMushafWord,
     QuranRecitationFile,
     QuranTranslationFile,
     QuranTranslationsFile,
@@ -191,3 +193,32 @@ recitationFile.surahs[0]![0] = {
         [4, 2480, 5160],
     ],
 };
+
+/** A mushaf of one word per verse, spread over the 604 pages, with the header and basmala of Al-Baqarah on page 2. */
+export const mushafFile: QuranMushafFile = (() => {
+    const verses = QURAN_VERSE_COUNTS.flatMap((count, surah) => Array.from({ length: count }, (_, ayah) => [surah + 1, ayah + 1] as const));
+    const perPage = Math.ceil(verses.length / 604);
+    const pages: QuranMushafFile['pages'] = Array.from({ length: 604 }, (_, index) => {
+        const words: QuranMushafWord[] = verses
+            .slice(index * perPage, (index + 1) * perPage)
+            .flatMap(([surah, ayah]) => [[surah, ayah, 1, '\uFC41'], [surah, ayah, 0, '\uFC42']] satisfies QuranMushafWord[]);
+        const page = String(index + 1).padStart(3, '0');
+        return {
+            font: { path: `quran/mushafs/qpc-v4-tajweed/fonts/${page}.0123abcd.ttf`, sha256: 'a'.repeat(64), bytes: 1000 },
+            lines: words.length ? [{ type: 'text', centered: false, words }] : [{ type: 'basmala' }],
+        };
+    });
+    pages[1]!.lines.unshift({ type: 'surah-name', surah: 2 }, { type: 'basmala' });
+    return {
+        schemaVersion: 1,
+        mushaf: {
+            id: 'qpc-v4-tajweed',
+            name: 'KFGQPC V4 Tajweed (1441H)',
+            tajweed: true,
+            lineCount: 15,
+            bytes: 604_000,
+            attribution: { source: 'Quranic Universal Library', sourceUrl: 'https://qul.tarteel.ai/resources/font/240', retrievedAt },
+        },
+        pages,
+    };
+})();

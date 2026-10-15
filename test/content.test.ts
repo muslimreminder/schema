@@ -7,6 +7,9 @@ import {
     HadithCollectionsFileSchema,
     ManifestSchema,
     QURAN_VERSE_COUNTS,
+    quranMushafFontPath,
+    QuranMushafFileSchema,
+    QuranMushafsFileSchema,
     quranVerseAudioPath,
     QuranRecitationFileSchema,
     QuranRecitationsFileSchema,
@@ -24,6 +27,7 @@ import {
     booksFile,
     collectionsFile,
     manifest,
+    mushafFile,
     recitationFile,
     surahInfoFile,
     tafsirFile,
@@ -273,5 +277,40 @@ describe('quran recitations', () => {
         expect(contentKeys.quran.recitation('al-husary')).toBe('quran/recitations/al-husary');
         expect(quranVerseAudioPath('al-husary', 2, 255)).toBe('quran/audio/al-husary/002255.mp3');
         expect(quranVerseAudioPath('sudais', 114, 6)).toBe('quran/audio/sudais/114006.mp3');
+    });
+});
+
+describe('quran mushafs', () => {
+    type Word = (typeof mushafFile.pages)[number]['lines'][number] & { type: 'text' };
+    const firstLine = (file: typeof mushafFile) => file.pages[0]!.lines[0] as Word;
+    const withFirstWords = (words: Word['words']) => {
+        const file = JSON.parse(JSON.stringify(mushafFile)) as typeof mushafFile;
+        firstLine(file).words = words;
+        return file;
+    };
+
+    it('accepts a mushaf whose words follow each other', () => {
+        expect(QuranMushafFileSchema.parse(mushafFile)).toEqual(mushafFile);
+        const catalog = { schemaVersion: 1, mushafs: [mushafFile.mushaf] };
+        expect(QuranMushafsFileSchema.parse(catalog)).toEqual(catalog);
+        expect(QuranMushafsFileSchema.safeParse({ ...catalog, mushafs: [mushafFile.mushaf, mushafFile.mushaf] }).success).toBe(false);
+    });
+
+    it('rejects missing, repeated or unfinished verses', () => {
+        const words = firstLine(mushafFile).words;
+        expect(QuranMushafFileSchema.safeParse(withFirstWords(words.slice(2))).success).toBe(false);
+        expect(QuranMushafFileSchema.safeParse(withFirstWords([...words.slice(0, 2), ...words])).success).toBe(false);
+        expect(QuranMushafFileSchema.safeParse(withFirstWords([words[0]!, ...words.slice(2)])).success).toBe(false);
+        expect(QuranMushafFileSchema.safeParse(withFirstWords([words[1]!, ...words.slice(1)])).success).toBe(false);
+        expect(QuranMushafFileSchema.safeParse(withFirstWords([[1, 1, 2, 'x'], ...words.slice(1)])).success).toBe(false);
+        expect(QuranMushafFileSchema.safeParse({ ...mushafFile, pages: mushafFile.pages.slice(1) }).success).toBe(false);
+    });
+
+    it('keeps each page font under its mushaf and page', () => {
+        const file = JSON.parse(JSON.stringify(mushafFile)) as typeof mushafFile;
+        file.pages[2]!.font.path = 'quran/mushafs/qpc-v4-tajweed/fonts/004.0123abcd.ttf';
+        expect(QuranMushafFileSchema.safeParse(file).success).toBe(false);
+        expect(quranMushafFontPath('qpc-v4-tajweed', 3, 'abcdef0123'.repeat(6) + 'abcd')).toBe('quran/mushafs/qpc-v4-tajweed/fonts/003.abcdef01.ttf');
+        expect(contentKeys.quran.mushaf('qpc-v4-tajweed')).toBe('quran/mushafs/qpc-v4-tajweed');
     });
 });

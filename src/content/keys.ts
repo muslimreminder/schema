@@ -19,6 +19,9 @@ export const contentKeys = {
         tafsir: (tafsirId: string) => `quran/tafsirs/${tafsirId}`,
         recitations: () => 'quran/recitations',
         recitation: (recitationId: string) => `quran/recitations/${recitationId}`,
+        mushafs: () => 'quran/mushafs',
+        /** The layout of a mushaf; its page fonts are listed in it (see `QuranMushafFontSchema`). */
+        mushaf: (mushafId: string) => `quran/mushafs/${mushafId}`,
     },
 } as const;
 

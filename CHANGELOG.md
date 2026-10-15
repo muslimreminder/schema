@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.8.0
+
+### Minor Changes
+
+- Add downloadable mushafs: the `quran/mushafs` catalog and the `quran/mushafs/{id}` layout, whose page fonts are published at `quranMushafFontPath(id, page, sha256)`.
+
 ## 0.7.0
 
 ### Minor Changes
