@@ -11,9 +11,11 @@ export const ClientEnvironmentSchema = z.object({
 });
 export type ClientEnvironment = z.infer<typeof ClientEnvironmentSchema>;
 
-/** Anonymous identifiers of the reporter; `null` until the app has user sessions. */
+/** Anonymous identifiers of the reporter, also set on the Sentry events of the app to find them back. */
 export const ReporterSchema = z.object({
+    /** Identifier of the device: `ANDROID_ID` on Android, `identifierForVendor` on iOS. */
     userId: z.string().min(1).nullable().optional(),
+    /** Identifier of the app launch the ticket was sent from. */
     sessionId: z.string().min(1).nullable().optional(),
 });
 export type Reporter = z.infer<typeof ReporterSchema>;
