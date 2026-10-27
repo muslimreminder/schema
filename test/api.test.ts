@@ -17,6 +17,14 @@ describe('report bug', () => {
         expect(ReportBugRequestSchema.safeParse({ bug: { title: 'x', environment, reporter: {}, createdAt } }).success).toBe(true);
     });
 
+    it('accepts an optional email to contact the reporter back', () => {
+        const parsed = ReportBugRequestSchema.parse({
+            bug: { title: 'x', email: ' user@example.com ', environment, reporter, createdAt },
+        });
+        expect(parsed.bug.email).toBe('user@example.com');
+        expect(ReportBugRequestSchema.safeParse({ bug: { title: 'x', email: 'nope', environment, reporter, createdAt } }).success).toBe(false);
+    });
+
     it('rejects an empty title', () => {
         expect(ReportBugRequestSchema.safeParse({ bug: { title: '   ', environment, reporter, createdAt } }).success).toBe(false);
     });

@@ -4,6 +4,8 @@ import { ClientEnvironmentSchema, ReporterSchema } from './common.js';
 export const ReportBugSchema = z.object({
     title: z.string().trim().min(1).max(200),
     description: z.string().trim().min(1).max(5000).optional(),
+    /** To contact the reporter back. Omit when the user gave none (never send a placeholder). */
+    email: z.string().trim().pipe(z.email()).optional(),
     environment: ClientEnvironmentSchema,
     reporter: ReporterSchema,
     /** ISO 8601, e.g. `new Date().toISOString()`. */
