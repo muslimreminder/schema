@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.9.0
+
+### Minor Changes
+
+- [#13](https://github.com/muslimreminder/schema/pull/13) [`89b3508`](https://github.com/muslimreminder/schema/commit/89b3508c260e128094e3196f2864edf736ce539b) Thanks [@iambluedev1](https://github.com/iambluedev1)! - Add an optional `email` to `ReportBugSchema`, so the reporter of a bug can be contacted back, and document the `Reporter` ids: `userId` identifies the device, `sessionId` the app launch.
+
 ## 0.8.0
 
 ### Minor Changes
