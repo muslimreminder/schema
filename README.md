@@ -17,7 +17,7 @@ React Native (Expo), browsers, Cloudflare Workers and Node ≥ 20.19.
 | --- | --- |
 | `@muslimreminder/schema/common` | `LanguageCode`, `LocalizedText`, `Attribution` |
 | `@muslimreminder/schema/content` | Published content: hadith files, `Manifest`, `contentKeys`, `CONTENT_SCHEMA_VERSION` |
-| `@muslimreminder/schema/api` | Ticket worker contracts: `ReportBugRequest`, `ContactUsRequest`, `ticketRoutes` |
+| `@muslimreminder/schema/api` | Worker contracts: `ReportBugRequest`, `ContactUsRequest`, `ticketRoutes`; anonymous statistics: `TelemetryPing`, `telemetryRoutes` |
 | `@muslimreminder/schema` | Everything above |
 
 ## Content on the CDN
