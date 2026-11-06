@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.10.0
+
+### Minor Changes
+
+- [#14](https://github.com/muslimreminder/schema/pull/14) [`6b86982`](https://github.com/muslimreminder/schema/commit/6b86982b8468f3c4030201f4cf8fffb7e8d78558) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Add the anonymous statistics contract: `TelemetryPingSchema` (one ping a day at most per install, no identifier: `app`, `audience` flags, flat `settings` and `usage` records) and `telemetryRoutes.ping` (`POST /telemetry`, answered `204`).
+
 ## 0.9.0
 
 ### Minor Changes
