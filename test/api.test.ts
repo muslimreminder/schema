@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
     ContactUsRequestSchema,
+    ConversationSchema,
+    inboxLink,
+    InboxRequestSchema,
+    InboxResponseSchema,
+    inboxRoutes,
+    ReplyInputSchema,
+    SendBroadcastInputSchema,
+    TranslationsSchema,
     ReportBugRequestSchema,
     TELEMETRY_MAX_KEYS,
     TelemetryPingSchema,
@@ -110,5 +118,75 @@ describe('telemetry ping', () => {
     it('checks the install week format', () => {
         expect(TelemetryPingSchema.safeParse({ ...ping, audience: { ...ping.audience, installWeek: '2026-45' } }).success).toBe(false);
         expect(TelemetryPingSchema.safeParse({ ...ping, audience: { ...ping.audience, installWeek: null } }).success).toBe(true);
+    });
+});
+
+describe('support inbox', () => {
+    const inboxKey = '3f2b8c1e-8d4a-4c55-9a51-0d7c2b1e6f90';
+    const request = { userId: 'a1b2c3d4e5f60718', inboxKey, platform: 'android', language: 'ar' };
+
+    it('lets a ticket carry the app language and the inbox key', () => {
+        const parsed = ContactUsRequestSchema.parse({
+            contact: { message: 'Salam', environment: { ...environment, language: 'ar' }, reporter: { ...reporter, inboxKey }, createdAt },
+        });
+        expect(parsed.contact.environment.language).toBe('ar');
+        expect(parsed.contact.reporter.inboxKey).toBe(inboxKey);
+    });
+
+    it('rejects a short or malformed inbox key', () => {
+        const contact = (key: string) => ({ contact: { message: 'x', environment, reporter: { inboxKey: key }, createdAt } });
+        expect(ContactUsRequestSchema.safeParse(contact('short')).success).toBe(false);
+        expect(ContactUsRequestSchema.safeParse(contact('not a key with spaces!!')).success).toBe(false);
+    });
+
+    it('accepts an inbox request, with or without a device id', () => {
+        expect(InboxRequestSchema.safeParse(request).success).toBe(true);
+        expect(InboxRequestSchema.safeParse({ ...request, userId: null }).success).toBe(true);
+        expect(InboxRequestSchema.safeParse({ ...request, platform: 'web' }).success).toBe(false);
+    });
+
+    it('lists a thread only once it has a reply', () => {
+        const thread = {
+            id: 't12',
+            ticket: { type: 'contact', title: null, text: 'Salam', createdAt },
+            replies: [{ id: 'r3', text: 'وعليكم السلام', createdAt }],
+        };
+        expect(InboxResponseSchema.safeParse({ threads: [thread], announcements: [] }).success).toBe(true);
+        expect(InboxResponseSchema.safeParse({ threads: [{ ...thread, replies: [] }], announcements: [] }).success).toBe(false);
+    });
+
+    it('builds the deep link of an inbox item', () => {
+        expect(inboxLink('t12')).toBe('muslimreminder://messages/t12');
+        expect(inboxRoutes.list).toMatchObject({ method: 'POST', path: '/inbox' });
+    });
+});
+
+describe('support admin', () => {
+    it('needs the final text of a reply in its language', () => {
+        expect(ReplyInputSchema.safeParse({ ticketId: 't12', textFr: 'Bonjour', language: 'en', text: 'Hello', author: 'a@b.c' }).success).toBe(true);
+        expect(ReplyInputSchema.safeParse({ ticketId: 't12', textFr: 'Bonjour', language: 'de', text: 'Hallo', author: 'a@b.c' }).success).toBe(false);
+    });
+
+    it('needs the French text of a broadcast and sends it to everyone by default', () => {
+        const parsed = SendBroadcastInputSchema.parse({ title: { fr: 'Ramadan' }, body: { fr: 'Ramadan moubarak', ar: 'رمضان مبارك' }, listed: true, author: 'a@b.c' });
+        expect(parsed.language).toBeNull();
+        expect(SendBroadcastInputSchema.safeParse({ title: { en: 'Ramadan' }, body: { en: 'x' }, listed: true, author: 'a@b.c' }).success).toBe(false);
+    });
+
+    it('allows a missing translation', () => {
+        expect(TranslationsSchema.safeParse({ en: 'Hello' }).success).toBe(true);
+        expect(TranslationsSchema.safeParse({ de: 'Hallo' }).success).toBe(false);
+    });
+
+    it('groups tickets and replies in a conversation', () => {
+        const conversation = {
+            userId: 'a1b2c3d4e5f60718', platform: 'ios', language: 'fr', inboxReady: false, email: null,
+            ticketCount: 1, latestTicketKind: 'contact', awaitingReply: true, handled: null, lastItemAt: createdAt, preview: 'Salam',
+            items: [{
+                type: 'ticket', id: 't12', kind: 'bug', title: 'Crash', text: '', translation: null, language: 'fr', email: null,
+                issueNumber: 42, issueUrl: 'https://github.com/muslimreminder/project-management/issues/42', issueClosed: null, environment, settings: null, createdAt,
+            }],
+        };
+        expect(ConversationSchema.safeParse(conversation).success).toBe(true);
     });
 });

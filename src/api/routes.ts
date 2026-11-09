@@ -1,5 +1,6 @@
 import { ApiErrorResponseSchema, TicketCreatedResponseSchema } from './common.js';
 import { ContactUsRequestSchema } from './contact-us.js';
+import { InboxRequestSchema, InboxResponseSchema } from './inbox.js';
 import { ReportBugRequestSchema } from './report-bug.js';
 import { TelemetryPingSchema } from './telemetry.js';
 
@@ -30,6 +31,17 @@ export const telemetryRoutes = {
         method: 'POST',
         path: '/telemetry',
         request: TelemetryPingSchema,
+        error: ApiErrorResponseSchema,
+    },
+} as const;
+
+/** Inbox of the app (More > Messages), served by the same worker. See `InboxRequestSchema`. */
+export const inboxRoutes = {
+    list: {
+        method: 'POST',
+        path: '/inbox',
+        request: InboxRequestSchema,
+        response: InboxResponseSchema,
         error: ApiErrorResponseSchema,
     },
 } as const;

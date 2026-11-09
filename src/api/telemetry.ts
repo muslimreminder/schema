@@ -28,6 +28,15 @@ export type TelemetryValue = z.infer<typeof TelemetryValueSchema>;
 
 const maxKeys = (record: Record<string, unknown>) => Object.keys(record).length <= TELEMETRY_MAX_KEYS;
 
+/**
+ * Preferences of the app joined to a ticket, so that the admins can help: the same coarse picture
+ * as `settings` in a ping. Never written to the issue, Telegram nor the logs.
+ */
+export const AppSettingsSchema = z.record(TelemetryKeySchema, TelemetryValueSchema).refine(maxKeys, {
+    message: `At most ${TELEMETRY_MAX_KEYS} keys`,
+});
+export type AppSettings = z.infer<typeof AppSettingsSchema>;
+
 /** ISO 8601 week, e.g. `2026-W45`. */
 export const IsoWeekSchema = z.string().regex(/^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/);
 
