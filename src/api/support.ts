@@ -34,6 +34,10 @@ export type IssueCloseReason = z.infer<typeof IssueCloseReasonSchema>;
 export const TicketKindSchema = z.enum(['bug', 'contact']);
 export type TicketKind = z.infer<typeof TicketKindSchema>;
 
+/** Where one ticket stands: waiting for an admin, answered, or closed without a reply. */
+export const TicketStatusSchema = z.enum(['awaiting', 'replied', 'handled']);
+export type TicketStatus = z.infer<typeof TicketStatusSchema>;
+
 export const SupportTicketSchema = z.object({
     type: z.literal('ticket'),
     id: z.string().min(1),
@@ -51,6 +55,10 @@ export const SupportTicketSchema = z.object({
     issueUrl: z.string().nullable(),
     /** The issue was closed from the admin or Telegram; `null` while it is open as far as we know. */
     issueClosed: z.object({ reason: IssueCloseReasonSchema, at: isoDate, by: z.string().min(1) }).nullable(),
+    /** `replied` as soon as a reply answers this very ticket, else `handled` when `handled` is set. */
+    status: TicketStatusSchema,
+    /** Marked as needing no reply, or its issue was closed: by whom, when; `null` otherwise. */
+    handled: z.object({ at: isoDate, by: z.string().min(1) }).nullable(),
     environment: z.object({ os: z.string(), device: z.string(), appVersion: z.string() }),
     /** Preferences of the app when the ticket was sent; `null` for the app versions that do not send them. */
     settings: AppSettingsSchema.nullable(),
@@ -77,7 +85,10 @@ export type SupportReply = z.infer<typeof SupportReplySchema>;
 export const SupportItemSchema = z.discriminatedUnion('type', [SupportTicketSchema, SupportReplySchema]);
 export type SupportItem = z.infer<typeof SupportItemSchema>;
 
-/** Tickets of one device (`reporter.userId`), grouped. */
+/**
+ * Tickets of one device (`reporter.userId`), grouped.
+ * @deprecated The admin lists the tickets one by one (`TicketSummarySchema`); `Conversation` stays.
+ */
 export const ConversationSummarySchema = z.object({
     userId: z.string().min(1),
     platform: AppPlatformSchema.nullable(),
@@ -106,6 +117,38 @@ export const ConversationSchema = ConversationSummarySchema.extend({
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
 
+/** One row of the admin's list of tickets. */
+export const TicketSummarySchema = SupportTicketSchema.pick({
+    id: true,
+    kind: true,
+    language: true,
+    status: true,
+    environment: true,
+    createdAt: true,
+}).extend({
+    /** Device that sent it (`reporter.userId`): the admin's page of a ticket lives under its device. */
+    userId: z.string().min(1),
+    /** First characters of the ticket, in French when translated. */
+    preview: z.string(),
+});
+export type TicketSummary = z.infer<typeof TicketSummarySchema>;
+
+export const ListTicketsInputSchema = z.object({
+    filter: z.enum(['all', 'awaiting']).default('all'),
+    limit: z.number().int().min(1).max(100).default(50),
+    /** `nextCursor` of the previous page. */
+    cursor: z.string().min(1).nullable().optional(),
+});
+export type ListTicketsInput = z.input<typeof ListTicketsInputSchema>;
+
+export const TicketPageSchema = z.object({
+    /** Most recently received first. */
+    tickets: z.array(TicketSummarySchema),
+    nextCursor: z.string().nullable(),
+});
+export type TicketPage = z.infer<typeof TicketPageSchema>;
+
+/** @deprecated Use `ListTicketsInputSchema`. */
 export const ListConversationsInputSchema = z.object({
     filter: z.enum(['all', 'awaiting']).default('all'),
     limit: z.number().int().min(1).max(100).default(50),
@@ -114,6 +157,7 @@ export const ListConversationsInputSchema = z.object({
 });
 export type ListConversationsInput = z.input<typeof ListConversationsInputSchema>;
 
+/** @deprecated Use `TicketPageSchema`. */
 export const ConversationPageSchema = z.object({
     /** Most recent activity first. */
     conversations: z.array(ConversationSummarySchema),
@@ -122,7 +166,7 @@ export const ConversationPageSchema = z.object({
 export type ConversationPage = z.infer<typeof ConversationPageSchema>;
 
 export const MarkHandledInputSchema = z.object({
-    /** Latest ticket the admin has read: it and the older ones are marked, a ticket that came since stays open. */
+    /** Only this ticket is marked: the other tickets of the device stay as they are. */
     ticketId: z.string().min(1),
     author: z.string().min(1),
 });
@@ -215,6 +259,9 @@ export type AppVersionCount = z.infer<typeof AppVersionCountSchema>;
  * `services: [{ binding: "SUPPORT", service: "github-issue-server", entrypoint: "SupportService" }]`.
  */
 export interface SupportServiceRpc {
+    /** Tickets one by one, most recently received first. */
+    listTickets(input: ListTicketsInput): Promise<TicketPage>;
+    /** @deprecated Use `listTickets`. */
     listConversations(input: ListConversationsInput): Promise<ConversationPage>;
     getConversation(userId: string): Promise<Conversation | null>;
     translate(input: TranslateInput): Promise<Translations>;
@@ -222,9 +269,11 @@ export interface SupportServiceRpc {
     reply(input: ReplyInput): Promise<SupportReply>;
     /** Closes the GitHub issue of a ticket and archives its Telegram notification, as the ✅ / ❌ buttons do. */
     closeIssue(input: CloseIssueInput): Promise<void>;
-    /** Marks tickets as needing no reply: the conversation stops awaiting one, until the device writes again. */
+    /** Marks one ticket as needing no reply. */
     markHandled(input: MarkHandledInput): Promise<void>;
-    /** Puts the tickets of a device marked as handled back in the queue. */
+    /** Puts a ticket marked as handled back in the queue. */
+    reopenTicket(ticketId: string): Promise<void>;
+    /** @deprecated Use `reopenTicket`. */
     reopenConversation(userId: string): Promise<void>;
     listBroadcasts(input: ListBroadcastsInput): Promise<Broadcast[]>;
     sendBroadcast(input: SendBroadcastInput): Promise<Broadcast>;
