@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.12.0
+
+### Minor Changes
+
+- [#18](https://github.com/muslimreminder/schema/pull/18) [`e6ac8df`](https://github.com/muslimreminder/schema/commit/e6ac8dff8f61d5782cc6b9b8f2f6e603435d94ca) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - The admin handles support tickets one by one. Tickets carry their `status` (`awaiting`, `replied`, `handled`) and who marked them as `handled`. `SupportServiceRpc` gains `listTickets` (with `TicketSummarySchema` and `TicketPageSchema`) and `reopenTicket`, and `markHandled` only marks the given ticket. `listConversations` and `reopenConversation` are deprecated.
+
 ## 0.11.0
 
 ### Minor Changes
