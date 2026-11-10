@@ -19,6 +19,8 @@ export const contentKeys = {
         tafsir: (tafsirId: string) => `quran/tafsirs/${tafsirId}`,
         recitations: () => 'quran/recitations',
         recitation: (recitationId: string) => `quran/recitations/${recitationId}`,
+        surahRecitations: () => 'quran/surah-recitations',
+        surahRecitation: (recitationId: string) => `quran/surah-recitations/${recitationId}`,
         mushafs: () => 'quran/mushafs',
         /** The layout of a mushaf; its page fonts are listed in it (see `QuranMushafFontSchema`). */
         mushaf: (mushafId: string) => `quran/mushafs/${mushafId}`,
@@ -41,4 +43,13 @@ const padded = (number: number) => String(number).padStart(3, '0');
  */
 export function quranVerseAudioPath(recitationId: string, surah: number, ayah: number): string {
     return `quran/audio/${recitationId}/${padded(surah)}${padded(ayah)}.mp3`;
+}
+
+/**
+ * Where the audio of a whole surah lives under the content root, e.g. `quran/surah-audio/al-husary/002.mp3`.
+ * Like the verse audio, it is not in the manifest and never changes; which surahs exist is what
+ * `quran/surah-recitations/{id}` says.
+ */
+export function quranSurahAudioPath(recitationId: string, surah: number): string {
+    return `quran/surah-audio/${recitationId}/${padded(surah)}.mp3`;
 }
