@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.13.0
+
+### Minor Changes
+
+- [#20](https://github.com/muslimreminder/schema/pull/20) [`070c98b`](https://github.com/muslimreminder/schema/commit/070c98ba8cd447c33044e0abd8fee743deae5e56) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - A ticket no longer creates a GitHub issue. Tickets carry their `resolution` (`done`, `wont_do`, `ignored`), and `SupportServiceRpc` gains `resolveTicket`, `createIssue` and `linkIssue`. `TicketSummarySchema` also gives `resolution` and `issueNumber`. The `url` of `TicketCreatedResponseSchema` is optional and deprecated, next to a new `id`. `closeIssue` and `markHandled` are deprecated.
+
 ## 0.12.0
 
 ### Minor Changes
