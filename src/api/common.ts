@@ -34,9 +34,12 @@ export const ApiErrorResponseSchema = z.object({
 });
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
 
-/** Response of the ticket endpoints: the GitHub issue that was created. */
+/** Response of the ticket endpoints: the ticket is stored, the admins are told. */
 export const TicketCreatedResponseSchema = z.object({
     message: z.string(),
-    url: z.url(),
+    /** Opaque id of the stored ticket. */
+    id: z.string().optional(),
+    /** @deprecated A ticket no longer creates a GitHub issue: absent from the answers of the current worker. */
+    url: z.url().optional(),
 });
 export type TicketCreatedResponse = z.infer<typeof TicketCreatedResponseSchema>;
