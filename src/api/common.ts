@@ -10,6 +10,13 @@ export const ClientEnvironmentSchema = z.object({
     device: z.string().trim().min(1).max(100),
     /** e.g. `1.0.3`, `landing`. */
     appVersion: z.string().trim().min(1).max(50),
+    /**
+     * Version of the JavaScript the app runs, e.g. `1.2.6`: higher than `appVersion` once an over-the-air
+     * update is applied on the binary. Absent from the versions that do not send it.
+     */
+    bundleVersion: z.string().trim().min(1).max(50).optional(),
+    /** Id of the over-the-air update running, `null` on the bundle shipped in the binary. */
+    updateId: z.string().trim().min(1).max(100).nullable().optional(),
     /** Language of the app, e.g. `fr`: replies to the ticket are translated into it. */
     language: LanguageCodeSchema.optional(),
 });

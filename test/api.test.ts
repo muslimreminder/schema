@@ -24,6 +24,27 @@ const environment = { os: 'Android 14', device: 'Pixel 6', appVersion: '1.0.3' }
 const reporter = { userId: null, sessionId: null };
 const createdAt = '2026-09-24T12:30:00.000Z';
 
+describe('client environment', () => {
+    it('carries the version of the over-the-air update the app runs', () => {
+        const parsed = ContactUsRequestSchema.parse({
+            contact: {
+                message: 'Salam',
+                environment: { ...environment, bundleVersion: '1.2.6', updateId: '0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b' },
+                reporter,
+                createdAt,
+            },
+        });
+        expect(parsed.contact.environment).toMatchObject({ bundleVersion: '1.2.6', updateId: '0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b' });
+    });
+
+    it('accepts the bundle shipped in the binary, and the versions that do not send them', () => {
+        expect(ContactUsRequestSchema.safeParse({
+            contact: { message: 'x', environment: { ...environment, bundleVersion: '1.0.3', updateId: null }, reporter, createdAt },
+        }).success).toBe(true);
+        expect(ContactUsRequestSchema.safeParse({ contact: { message: 'x', environment, reporter, createdAt } }).success).toBe(true);
+    });
+});
+
 describe('report bug', () => {
     it('accepts a valid request and trims text', () => {
         const parsed = ReportBugRequestSchema.parse({
