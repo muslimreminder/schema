@@ -38,6 +38,13 @@ export type TicketKind = z.infer<typeof TicketKindSchema>;
 export const TicketStatusSchema = z.enum(['awaiting', 'replied', 'handled']);
 export type TicketStatus = z.infer<typeof TicketStatusSchema>;
 
+/**
+ * How a ticket was closed. `done` and `wont_do` also close its GitHub issue (`completed`,
+ * `not_planned`); `ignored` is for what needs nothing at all, and is refused on a ticket with an issue.
+ */
+export const TicketResolutionSchema = z.enum(['done', 'wont_do', 'ignored']);
+export type TicketResolution = z.infer<typeof TicketResolutionSchema>;
+
 export const SupportTicketSchema = z.object({
     type: z.literal('ticket'),
     id: z.string().min(1),
@@ -51,6 +58,7 @@ export const SupportTicketSchema = z.object({
     /** Language the ticket was written in, when known (sent by the app or detected). */
     language: LanguageCodeSchema.nullable(),
     email: z.string().nullable(),
+    /** The GitHub issue of the ticket, `null` until it is converted or linked to one. Several tickets can share an issue. */
     issueNumber: z.number().int().nullable(),
     issueUrl: z.string().nullable(),
     /** The issue was closed from the admin or Telegram; `null` while it is open as far as we know. */
@@ -59,6 +67,8 @@ export const SupportTicketSchema = z.object({
     status: TicketStatusSchema,
     /** Marked as needing no reply, or its issue was closed: by whom, when; `null` otherwise. */
     handled: z.object({ at: isoDate, by: z.string().min(1) }).nullable(),
+    /** How the ticket was closed, by whom, when; `null` while it is open, answered or not. */
+    resolution: z.object({ kind: TicketResolutionSchema, at: isoDate, by: z.string().min(1) }).nullable(),
     environment: z.object({ os: z.string(), device: z.string(), appVersion: z.string() }),
     /** Preferences of the app when the ticket was sent; `null` for the app versions that do not send them. */
     settings: AppSettingsSchema.nullable(),
@@ -123,6 +133,8 @@ export const TicketSummarySchema = SupportTicketSchema.pick({
     kind: true,
     language: true,
     status: true,
+    resolution: true,
+    issueNumber: true,
     environment: true,
     createdAt: true,
 }).extend({
@@ -134,6 +146,7 @@ export const TicketSummarySchema = SupportTicketSchema.pick({
 export type TicketSummary = z.infer<typeof TicketSummarySchema>;
 
 export const ListTicketsInputSchema = z.object({
+    /** `awaiting`: the tickets still open, answered or not. */
     filter: z.enum(['all', 'awaiting']).default('all'),
     limit: z.number().int().min(1).max(100).default(50),
     /** `nextCursor` of the previous page. */
@@ -172,12 +185,41 @@ export const MarkHandledInputSchema = z.object({
 });
 export type MarkHandledInput = z.input<typeof MarkHandledInputSchema>;
 
+/** @deprecated Use `ResolveTicketInputSchema`. */
 export const CloseIssueInputSchema = z.object({
     ticketId: z.string().min(1),
     reason: IssueCloseReasonSchema,
     author: z.string().min(1),
 });
 export type CloseIssueInput = z.input<typeof CloseIssueInputSchema>;
+
+export const ResolveTicketInputSchema = z.object({
+    ticketId: z.string().min(1),
+    resolution: TicketResolutionSchema,
+    author: z.string().min(1),
+});
+export type ResolveTicketInput = z.input<typeof ResolveTicketInputSchema>;
+
+export const CreateIssueInputSchema = z.object({
+    ticketId: z.string().min(1),
+    author: z.string().min(1),
+});
+export type CreateIssueInput = z.input<typeof CreateIssueInputSchema>;
+
+export const LinkIssueInputSchema = z.object({
+    ticketId: z.string().min(1),
+    /** An issue that already exists in the tracker, for the same problem reported again. */
+    issueNumber: z.number().int().positive(),
+    author: z.string().min(1),
+});
+export type LinkIssueInput = z.input<typeof LinkIssueInputSchema>;
+
+/** The GitHub issue a ticket was converted to, or linked to. */
+export const TicketIssueSchema = z.object({
+    issueNumber: z.number().int(),
+    issueUrl: z.string().min(1),
+});
+export type TicketIssue = z.infer<typeof TicketIssueSchema>;
 
 /** French text to translate into some of the app languages. */
 export const TranslateInputSchema = z.object({
@@ -265,13 +307,19 @@ export interface SupportServiceRpc {
     listConversations(input: ListConversationsInput): Promise<ConversationPage>;
     getConversation(userId: string): Promise<Conversation | null>;
     translate(input: TranslateInput): Promise<Translations>;
-    /** Saves the reply, sends its push, comments the GitHub issue. */
+    /** Saves the reply, sends its push, comments the GitHub issue if the ticket has one. */
     reply(input: ReplyInput): Promise<SupportReply>;
-    /** Closes the GitHub issue of a ticket and archives its Telegram notification, as the ✅ / ❌ buttons do. */
+    /** Closes a ticket, its GitHub issue with the tickets sharing it, and archives their Telegram notifications. */
+    resolveTicket(input: ResolveTicketInput): Promise<void>;
+    /** Creates the GitHub issue of a ticket. Resolves to the existing one if it already has an issue. */
+    createIssue(input: CreateIssueInput): Promise<TicketIssue>;
+    /** Attaches a ticket to an issue that already exists. */
+    linkIssue(input: LinkIssueInput): Promise<TicketIssue>;
+    /** @deprecated Use `resolveTicket`. */
     closeIssue(input: CloseIssueInput): Promise<void>;
-    /** Marks one ticket as needing no reply. */
+    /** @deprecated Use `resolveTicket`. */
     markHandled(input: MarkHandledInput): Promise<void>;
-    /** Puts a ticket marked as handled back in the queue. */
+    /** Puts a closed ticket back in the queue. Its GitHub issue stays as it is. */
     reopenTicket(ticketId: string): Promise<void>;
     /** @deprecated Use `reopenTicket`. */
     reopenConversation(userId: string): Promise<void>;

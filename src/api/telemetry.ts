@@ -30,7 +30,8 @@ const maxKeys = (record: Record<string, unknown>) => Object.keys(record).length 
 
 /**
  * Preferences of the app joined to a ticket, so that the admins can help: the same coarse picture
- * as `settings` in a ping. Never written to the issue, Telegram nor the logs.
+ * as `settings` in a ping. Copied to the GitHub issue when a ticket gets one, to help debugging;
+ * never sent to Telegram nor written to the logs.
  */
 export const AppSettingsSchema = z.record(TelemetryKeySchema, TelemetryValueSchema).refine(maxKeys, {
     message: `At most ${TELEMETRY_MAX_KEYS} keys`,

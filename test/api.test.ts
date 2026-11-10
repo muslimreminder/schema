@@ -16,6 +16,8 @@ import {
     telemetryRoutes,
     ticketRoutes,
     TicketCreatedResponseSchema,
+    ResolveTicketInputSchema,
+    LinkIssueInputSchema,
 } from '../src/api/index.js';
 
 const environment = { os: 'Android 14', device: 'Pixel 6', appVersion: '1.0.3' };
@@ -78,6 +80,7 @@ describe('routes', () => {
         expect(ticketRoutes.reportBug.path).toBe('/report-bug');
         expect(ticketRoutes.contactUs.path).toBe('/contact-us');
         expect(TicketCreatedResponseSchema.safeParse({ message: 'Issue created', url: 'https://github.com/muslimreminder/project-management/issues/1' }).success).toBe(true);
+        expect(TicketCreatedResponseSchema.safeParse({ message: 'Ticket received', id: 't12' }).success).toBe(true);
         expect(telemetryRoutes.ping.path).toBe('/telemetry');
     });
 });
@@ -185,15 +188,27 @@ describe('support admin', () => {
             ticketCount: 1, latestTicketKind: 'contact', awaitingReply: true, handled: null, lastItemAt: createdAt, preview: 'Salam',
             items: [{
                 type: 'ticket', id: 't12', kind: 'bug', title: 'Crash', text: '', translation: null, language: 'fr', email: null,
-                issueNumber: 42, issueUrl: 'https://github.com/muslimreminder/project-management/issues/42', issueClosed: null, status: 'awaiting', handled: null, environment, settings: null, createdAt,
+                issueNumber: 42, issueUrl: 'https://github.com/muslimreminder/project-management/issues/42', issueClosed: null, status: 'awaiting', handled: null, resolution: null, environment, settings: null, createdAt,
             }],
         };
         expect(ConversationSchema.safeParse(conversation).success).toBe(true);
     });
 
     it('lists the tickets one by one, with where each one stands', () => {
-        const row = { id: 't12', userId: 'a1b2c3d4e5f60718', kind: 'bug', language: 'ar', status: 'awaiting', environment, createdAt, preview: 'Salam' };
+        const row = { id: 't12', userId: 'a1b2c3d4e5f60718', kind: 'bug', language: 'ar', status: 'awaiting', resolution: null, issueNumber: null, environment, createdAt, preview: 'Salam' };
         expect(TicketPageSchema.safeParse({ tickets: [row], nextCursor: null }).success).toBe(true);
         expect(TicketPageSchema.safeParse({ tickets: [{ ...row, status: 'closed' }], nextCursor: null }).success).toBe(false);
+    });
+
+    it('closes a ticket as done, won\'t do or ignored', () => {
+        const input = { ticketId: 't12', resolution: 'wont_do', author: 'a@b.c' };
+        expect(ResolveTicketInputSchema.safeParse(input).success).toBe(true);
+        expect(ResolveTicketInputSchema.safeParse({ ...input, resolution: 'handled' }).success).toBe(false);
+    });
+
+    it('links a ticket to an existing issue by its number', () => {
+        const input = { ticketId: 't12', issueNumber: 42, author: 'a@b.c' };
+        expect(LinkIssueInputSchema.safeParse(input).success).toBe(true);
+        expect(LinkIssueInputSchema.safeParse({ ...input, issueNumber: 0 }).success).toBe(false);
     });
 });
