@@ -7,6 +7,7 @@ import type {
     QuranMushafFile,
     QuranMushafWord,
     QuranRecitationFile,
+    QuranSurahRecitationFile,
     QuranTranslationFile,
     QuranTranslationsFile,
     QuranSurahInfoFile,
@@ -193,6 +194,40 @@ recitationFile.surahs[0]![0] = {
         [4, 2480, 5160],
     ],
 };
+
+/** Al-Fatihah and An-Nas only, the first one timed verse by verse (verse 2 located without its words). */
+export const surahRecitationFile: QuranSurahRecitationFile = (() => {
+    const surahs: QuranSurahRecitationFile['surahs'] = Array.from({ length: 114 }, () => null);
+    surahs[0] = {
+        duration: 48_000,
+        bytes: 772_183,
+        verses: [
+            { from: 0, to: 5000, words: [[1, 0, 630], [2, 680, 1390], [3, 1440, 2590], [4, 2640, 5000]] },
+            { from: 5200, to: 10_893, words: [] },
+            { from: 11_093, to: 15_489, words: [[1, 12_200, 13_230], [2, 13_280, 15_489]] },
+            null,
+            { from: 20_466, to: 26_116, words: [] },
+            { from: 27_835, to: 32_771, words: [] },
+            { from: 32_971, to: 48_000, words: [] },
+        ],
+    };
+    surahs[113] = { duration: 30_000, bytes: 500_000 };
+    return {
+        schemaVersion: 1,
+        recitation: {
+            id: 'al-husary',
+            reciter: 'Mahmoud Khalil Al-Husary',
+            style: 'murattal',
+            riwayah: 'hafs',
+            surahCount: 2,
+            timedVerseCount: 6,
+            duration: 78_000,
+            bytes: 1_272_183,
+            attribution: { source: 'Quranic Universal Library', sourceUrl: 'https://qul.tarteel.ai/resources/recitation/316', retrievedAt },
+        },
+        surahs,
+    };
+})();
 
 /** A mushaf of one word per verse, spread over the 604 pages, with the header and basmala of Al-Baqarah on page 2. */
 export const mushafFile: QuranMushafFile = (() => {

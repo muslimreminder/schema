@@ -10,7 +10,10 @@ import {
     quranMushafFontPath,
     QuranMushafFileSchema,
     QuranMushafsFileSchema,
+    quranSurahAudioPath,
     quranVerseAudioPath,
+    QuranSurahRecitationFileSchema,
+    QuranSurahRecitationsFileSchema,
     QuranRecitationFileSchema,
     QuranRecitationsFileSchema,
     QuranSurahInfoFileSchema,
@@ -30,6 +33,7 @@ import {
     mushafFile,
     recitationFile,
     surahInfoFile,
+    surahRecitationFile,
     tafsirFile,
     translationFile,
     translationsFile,
@@ -277,6 +281,73 @@ describe('quran recitations', () => {
         expect(contentKeys.quran.recitation('al-husary')).toBe('quran/recitations/al-husary');
         expect(quranVerseAudioPath('al-husary', 2, 255)).toBe('quran/audio/al-husary/002255.mp3');
         expect(quranVerseAudioPath('sudais', 114, 6)).toBe('quran/audio/sudais/114006.mp3');
+    });
+});
+
+describe('quran surah recitations', () => {
+    const clone = () => JSON.parse(JSON.stringify(surahRecitationFile)) as typeof surahRecitationFile;
+    const parse = (file: unknown) => QuranSurahRecitationFileSchema.safeParse(file).success;
+
+    it('accepts a valid file and its catalog', () => {
+        expect(QuranSurahRecitationFileSchema.parse(surahRecitationFile)).toEqual(surahRecitationFile);
+        const catalog = { schemaVersion: 1, recitations: [surahRecitationFile.recitation] };
+        expect(QuranSurahRecitationsFileSchema.parse(catalog)).toEqual(catalog);
+        const twice = [surahRecitationFile.recitation, surahRecitationFile.recitation];
+        expect(QuranSurahRecitationsFileSchema.safeParse({ ...catalog, recitations: twice }).success).toBe(false);
+    });
+
+    it('accepts an untimed recitation, a taraweeh recording and another riwayah', () => {
+        const file = clone();
+        delete file.surahs[0]!.verses;
+        Object.assign(file.recitation, { timedVerseCount: 0, label: 'Taraweeh 1442H', occasion: 'taraweeh', riwayah: 'al-susi', style: 'muallim' });
+        expect(parse(file)).toBe(true);
+    });
+
+    it('drops the total size when a surah has no size', () => {
+        const file = clone();
+        delete file.surahs[113]!.bytes;
+        expect(parse(file)).toBe(false);
+        delete file.recitation.bytes;
+        expect(parse(file)).toBe(true);
+    });
+
+    it('rejects wrong totals', () => {
+        for (const field of ['surahCount', 'timedVerseCount', 'duration', 'bytes'] as const) {
+            const file = clone();
+            file.recitation[field] = 3;
+            expect(parse(file)).toBe(false);
+        }
+    });
+
+    it('rejects a wrong verse count, verses out of order and bad word timings', () => {
+        const short = clone();
+        short.surahs[0]!.verses!.pop();
+        expect(parse(short)).toBe(false);
+        const backwards = clone();
+        backwards.surahs[0]!.verses![1] = { from: 9000, to: 6000, words: [] };
+        expect(parse(backwards)).toBe(false);
+        const unordered = clone();
+        unordered.surahs[0]!.verses![2] = { from: 1000, to: 2000, words: [] };
+        expect(parse(unordered)).toBe(false);
+        const words = clone();
+        words.surahs[0]!.verses![0]!.words = [[1, 600, 900], [1, 1000, 1200]];
+        expect(parse(words)).toBe(false);
+        const surahs = clone();
+        surahs.surahs.pop();
+        expect(parse(surahs)).toBe(false);
+    });
+
+    it('rejects an unknown riwayah, style or occasion', () => {
+        const catalog = (recitation: unknown) => QuranSurahRecitationsFileSchema.safeParse({ schemaVersion: 1, recitations: [recitation] }).success;
+        expect(catalog({ ...surahRecitationFile.recitation, riwayah: 'hafs-an-asim' })).toBe(false);
+        expect(catalog({ ...surahRecitationFile.recitation, style: 'kids' })).toBe(false);
+        expect(catalog({ ...surahRecitationFile.recitation, occasion: 'eid' })).toBe(false);
+    });
+
+    it('exposes the keys and the audio path of a surah', () => {
+        expect(contentKeys.quran.surahRecitations()).toBe('quran/surah-recitations');
+        expect(contentKeys.quran.surahRecitation('al-husary')).toBe('quran/surah-recitations/al-husary');
+        expect(quranSurahAudioPath('al-husary', 2)).toBe('quran/surah-audio/al-husary/002.mp3');
     });
 });
 
