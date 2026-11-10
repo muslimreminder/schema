@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.14.0
+
+### Minor Changes
+
+- [#22](https://github.com/muslimreminder/schema/pull/22) [`33820c8`](https://github.com/muslimreminder/schema/commit/33820c880c4e582a3506f7b07474387afe4f596a) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Recitations streamed surah by surah: `quran/surah-recitations` catalog (reciter, style, riwayah, taraweeh recordings, total duration and size) and `quran/surah-recitations/{id}` (one audio file per surah, verses and words located in it), audio at `quranSurahAudioPath(id, surah)`.
+
 ## 0.13.0
 
 ### Minor Changes
