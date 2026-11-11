@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.17.0
+
+### Minor Changes
+
+- [#28](https://github.com/muslimreminder/schema/pull/28) [`7a4478f`](https://github.com/muslimreminder/schema/commit/7a4478f86846184395e96c54df6b8ec605f8f5f4) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - `SupportServiceRpc.getPushReceipts` gives the delivery receipt of the replies and the broadcasts: devices aimed at, sent, displayed (`delivered`), opened (`clicked`), failed with their errors, and when the first device got there (`PushReceiptSchema`).
+
 ## 0.16.0
 
 ### Minor Changes
