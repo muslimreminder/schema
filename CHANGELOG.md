@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.15.0
+
+### Minor Changes
+
+- [#25](https://github.com/muslimreminder/schema/pull/25) [`be463ca`](https://github.com/muslimreminder/schema/commit/be463ca3b9c646416e4f8e04c27cf1b507d1763c) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Support: `createIssue` takes an optional `title` and developer `note`, and `commentIssue` adds a note to the issue a ticket already has (for the support assistant of the admin).
+
 ## 0.14.0
 
 ### Minor Changes
