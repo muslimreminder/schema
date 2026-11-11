@@ -200,9 +200,16 @@ export const ResolveTicketInputSchema = z.object({
 });
 export type ResolveTicketInput = z.input<typeof ResolveTicketInputSchema>;
 
+/** A note for the developers, in Markdown: e.g. the bug the support assistant spotted in the code. */
+const issueNote = z.string().trim().min(1).max(20000);
+
 export const CreateIssueInputSchema = z.object({
     ticketId: z.string().min(1),
     author: z.string().min(1),
+    /** Replaces the title taken from the ticket. */
+    title: z.string().trim().min(1).max(256).optional(),
+    /** Added to the issue body, after the ticket. */
+    note: issueNote.optional(),
 });
 export type CreateIssueInput = z.input<typeof CreateIssueInputSchema>;
 
@@ -213,6 +220,14 @@ export const LinkIssueInputSchema = z.object({
     author: z.string().min(1),
 });
 export type LinkIssueInput = z.input<typeof LinkIssueInputSchema>;
+
+/** A note added to the GitHub issue a ticket already has. */
+export const CommentIssueInputSchema = z.object({
+    ticketId: z.string().min(1),
+    body: issueNote,
+    author: z.string().min(1),
+});
+export type CommentIssueInput = z.input<typeof CommentIssueInputSchema>;
 
 /** The GitHub issue a ticket was converted to, or linked to. */
 export const TicketIssueSchema = z.object({
@@ -315,6 +330,8 @@ export interface SupportServiceRpc {
     createIssue(input: CreateIssueInput): Promise<TicketIssue>;
     /** Attaches a ticket to an issue that already exists. */
     linkIssue(input: LinkIssueInput): Promise<TicketIssue>;
+    /** Comments the GitHub issue of a ticket; fails when the ticket has none. */
+    commentIssue(input: CommentIssueInput): Promise<TicketIssue>;
     /** @deprecated Use `resolveTicket`. */
     closeIssue(input: CloseIssueInput): Promise<void>;
     /** @deprecated Use `resolveTicket`. */

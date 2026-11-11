@@ -18,6 +18,8 @@ import {
     TicketCreatedResponseSchema,
     ResolveTicketInputSchema,
     LinkIssueInputSchema,
+    CommentIssueInputSchema,
+    CreateIssueInputSchema,
 } from '../src/api/index.js';
 
 const environment = { os: 'Android 14', device: 'Pixel 6', appVersion: '1.0.3' };
@@ -210,5 +212,19 @@ describe('support admin', () => {
         const input = { ticketId: 't12', issueNumber: 42, author: 'a@b.c' };
         expect(LinkIssueInputSchema.safeParse(input).success).toBe(true);
         expect(LinkIssueInputSchema.safeParse({ ...input, issueNumber: 0 }).success).toBe(false);
+    });
+
+    it('creates an issue with an optional title and developer note', () => {
+        const input = { ticketId: 't12', author: 'a@b.c' };
+        expect(CreateIssueInputSchema.safeParse(input).success).toBe(true);
+        expect(CreateIssueInputSchema.safeParse({ ...input, title: 'Adhan muet', note: '- `src/a.ts`' }).success).toBe(true);
+        expect(CreateIssueInputSchema.safeParse({ ...input, note: '   ' }).success).toBe(false);
+        expect(CreateIssueInputSchema.safeParse({ ...input, title: 'x'.repeat(257) }).success).toBe(false);
+    });
+
+    it('comments the issue of a ticket', () => {
+        const input = { ticketId: 't12', body: 'Même bug', author: 'a@b.c' };
+        expect(CommentIssueInputSchema.safeParse(input).success).toBe(true);
+        expect(CommentIssueInputSchema.safeParse({ ...input, body: '' }).success).toBe(false);
     });
 });
