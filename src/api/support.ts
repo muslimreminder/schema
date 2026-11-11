@@ -69,7 +69,14 @@ export const SupportTicketSchema = z.object({
     handled: z.object({ at: isoDate, by: z.string().min(1) }).nullable(),
     /** How the ticket was closed, by whom, when; `null` while it is open, answered or not. */
     resolution: z.object({ kind: TicketResolutionSchema, at: isoDate, by: z.string().min(1) }).nullable(),
-    environment: z.object({ os: z.string(), device: z.string(), appVersion: z.string() }),
+    /** `bundleVersion` and `updateId`: `null` for the tickets of the app versions that do not send them. */
+    environment: z.object({
+        os: z.string(),
+        device: z.string(),
+        appVersion: z.string(),
+        bundleVersion: z.string().nullable().default(null),
+        updateId: z.string().nullable().default(null),
+    }),
     /** Preferences of the app when the ticket was sent; `null` for the app versions that do not send them. */
     settings: AppSettingsSchema.nullable(),
     createdAt: isoDate,
