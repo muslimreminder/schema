@@ -1,5 +1,11 @@
 # @muslimreminder/schema
 
+## 0.16.0
+
+### Minor Changes
+
+- [#24](https://github.com/muslimreminder/schema/pull/24) [`1ecabf2`](https://github.com/muslimreminder/schema/commit/1ecabf204d8bb751452d33ed6cb9e549a23d16ee) Thanks [@BanelhaqB](https://github.com/BanelhaqB)! - Tickets may carry the over-the-air update the app runs: `environment.bundleVersion` (the version of the JavaScript, higher than `appVersion` once an update is applied) and `environment.updateId` (`null` on the bundle shipped in the binary). `SupportTicketSchema` gives both, `null` for the tickets that do not have them.
+
 ## 0.15.0
 
 ### Minor Changes
