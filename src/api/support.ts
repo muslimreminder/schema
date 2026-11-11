@@ -318,6 +318,50 @@ export const AppVersionCountSchema = z.object({
 export type AppVersionCount = z.infer<typeof AppVersionCountSchema>;
 
 /**
+ * Delivery receipt of the push of a reply or a broadcast, as Demepush counts it: the app confirms
+ * that a push was displayed (`delivered`) and that it was opened (`clicked`). A device that is
+ * off, or an app version that does not report, leaves a push `sent` without more.
+ */
+export const PushReceiptSchema = z.object({
+    /** Devices the push was aimed at. */
+    total: z.number().int().min(0),
+    /** Not handed to Apple or Google yet: scheduled, queued, or held by a frequency cap. */
+    pending: z.number().int().min(0),
+    /** Handed to Apple or Google. `delivered` and `clicked` are among them. */
+    sent: z.number().int().min(0),
+    /** Displayed on the device, as the app confirmed. */
+    delivered: z.number().int().min(0),
+    /** Opened from the notification. */
+    clicked: z.number().int().min(0),
+    /** Refused by Apple or Google (token expired, app uninstalled…), or cancelled. */
+    failed: z.number().int().min(0),
+    /** Why the failed ones failed, most frequent first. */
+    errors: z.array(z.object({ error: z.string().min(1), count: z.number().int().min(1) })),
+    /** The first device to get there; `null` until one did (or when Demepush does not tell). */
+    sentAt: isoDate.nullable(),
+    deliveredAt: isoDate.nullable(),
+    clickedAt: isoDate.nullable(),
+    /** When these figures were read from Demepush. */
+    checkedAt: isoDate,
+});
+export type PushReceipt = z.infer<typeof PushReceiptSchema>;
+
+const receiptIds = z.array(z.string().min(1).max(32)).max(100).default([]);
+
+export const GetPushReceiptsInputSchema = z.object({
+    broadcastIds: receiptIds,
+    replyIds: receiptIds,
+});
+export type GetPushReceiptsInput = z.input<typeof GetPushReceiptsInputSchema>;
+
+/** Keyed by id; `null` for a push that never went out (no device, failed, cancelled) or that Demepush cannot read. */
+export const PushReceiptsSchema = z.object({
+    broadcasts: z.record(z.string(), PushReceiptSchema.nullable()),
+    replies: z.record(z.string(), PushReceiptSchema.nullable()),
+});
+export type PushReceipts = z.infer<typeof PushReceiptsSchema>;
+
+/**
  * Methods of the `SupportService` entrypoint of the ticket worker. The worker validates every
  * input with the schemas above; the admin binds it with
  * `services: [{ binding: "SUPPORT", service: "github-issue-server", entrypoint: "SupportService" }]`.
@@ -353,6 +397,8 @@ export interface SupportServiceRpc {
     unlistBroadcast(id: string): Promise<void>;
     /** Cancels a scheduled broadcast that has not gone out yet. */
     cancelBroadcast(id: string): Promise<void>;
+    /** Delivery receipts of replies and broadcasts; a recent push is read again from Demepush, an old one comes from the cache. */
+    getPushReceipts(input: GetPushReceiptsInput): Promise<PushReceipts>;
     /** Versions to aim a broadcast at, newest first; empty when Demepush does not tell. */
     listAppVersions(): Promise<AppVersionCount[]>;
 }

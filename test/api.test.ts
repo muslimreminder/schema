@@ -7,6 +7,8 @@ import {
     InboxRequestSchema,
     InboxResponseSchema,
     inboxRoutes,
+    GetPushReceiptsInputSchema,
+    PushReceiptsSchema,
     ReplyInputSchema,
     SendBroadcastInputSchema,
     TranslationsSchema,
@@ -189,6 +191,21 @@ describe('support inbox', () => {
 });
 
 describe('support admin', () => {
+    it('asks the receipts of no push by default, and of a hundred at most', () => {
+        expect(GetPushReceiptsInputSchema.parse({})).toEqual({ broadcastIds: [], replyIds: [] });
+        expect(GetPushReceiptsInputSchema.safeParse({ replyIds: Array.from({ length: 101 }, (_, i) => `r${i}`) }).success).toBe(false);
+    });
+
+    it('gives a receipt, or null for a push that never went out', () => {
+        const receipt = {
+            total: 2, pending: 0, sent: 2, delivered: 1, clicked: 1, failed: 0, errors: [],
+            sentAt: '2026-11-11T10:00:00.000Z', deliveredAt: '2026-11-11T10:00:02.000Z', clickedAt: '2026-11-11T10:05:00.000Z',
+            checkedAt: '2026-11-11T10:06:00.000Z',
+        };
+        expect(PushReceiptsSchema.safeParse({ broadcasts: { a1: null }, replies: { r9: receipt } }).success).toBe(true);
+        expect(PushReceiptsSchema.safeParse({ broadcasts: {}, replies: { r9: { ...receipt, delivered: -1 } } }).success).toBe(false);
+    });
+
     it('needs the final text of a reply in its language', () => {
         expect(ReplyInputSchema.safeParse({ ticketId: 't12', textFr: 'Bonjour', language: 'en', text: 'Hello', author: 'a@b.c' }).success).toBe(true);
         expect(ReplyInputSchema.safeParse({ ticketId: 't12', textFr: 'Bonjour', language: 'de', text: 'Hallo', author: 'a@b.c' }).success).toBe(false);
